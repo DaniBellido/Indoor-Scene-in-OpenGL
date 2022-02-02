@@ -134,17 +134,21 @@ void renderScene(mat4 &matrixView, float time)
 
 	Program.SendUniform("matrixView", matrixView); //ESSENTIAL FOR DIRECTIONAL LIGHT
 
-	//send the material colour (red, green, blue)... in one go
+
+	// camera object
+	Program.SendUniform("materialAmbient", 0.0, 0.0, 0.0);
+	Program.SendUniform("materialDiffuse", 0.0, 0.0, 0.0);
 	Program.SendUniform("materialSpecular", 0.0, 0.0, 0.0);
-	// camera
 	m = matrixView;
 	m = translate(m, vec3(-3.0f, 5, 25.0f));
 	m = rotate(m, radians(225.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.04f, 0.04f, 0.04f));
 	camera.render(m);
 
-	Program.SendUniform("materialSpecular", 0.6, 0.6, 0.6);
 	//table
+	Program.SendUniform("materialAmbient", 0.6, 0.6, 0.6);
+	Program.SendUniform("materialDiffuse", 0.0, 0.0, 0.0);
+	Program.SendUniform("materialSpecular", 1.0, 1.0, 1.0);
 	m = matrixView;
 	m = translate(m, vec3(20.0f, -16.7, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
@@ -152,10 +156,10 @@ void renderScene(mat4 &matrixView, float time)
 	table.render(1, m);
 
 	//chairs
-	for (int i = 0; i < 4; i++) 
+	for (int i = 0; i < 4; i++)
 	{
 		float tx = 20.0f, ty = -16.7f, tz = 0.0, rotation = 180.f;
-		if (i == 1) 
+		if (i == 1)
 		{
 			tx = 20.0f; ty = -16.7; tz = 0.0f; rotation = 0.f;
 		}
@@ -174,47 +178,58 @@ void renderScene(mat4 &matrixView, float time)
 		table.render(0, m);
 	}
 
-	Program.SendUniform("materialSpecular", 0.0, 0.0, 1.0);
 	// vase
+	Program.SendUniform("materialAmbient", 0.0, 0.0, 1.0);
+	Program.SendUniform("materialDiffuse", 0.0, 0.0, 1.0);
+	Program.SendUniform("materialSpecular", 0.0, 0.0, 1.0);
 	m = matrixView;
 	m = translate(m, vec3(20.0f, -1.5f, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.4f, 0.4f, 0.4f));
 	vase.render(m);
 
-	Program.SendUniform("materialSpecular", 0.0, 1.0, 0.0);
 	// teapot
+	Program.SendUniform("materialAmbient", 0.0, 1.0, 0.0);
+	Program.SendUniform("materialDiffuse", 0.0, 1.0, 0.0);
+	Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
 	m = matrixView;
 	m = translate(m, vec3(15.0f, -1.5f, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(2.f, 2.f, 2.f));
 	teapot.render(m);
 
-	Program.SendUniform("materialSpecular", 1.0, 0.0, 0.0);
 	// helmet
+	Program.SendUniform("materialAmbient", 1.0, 0.0, 0.0);
+	Program.SendUniform("materialDiffuse", 1.0, 0.0, 0.0);
+	Program.SendUniform("materialSpecular", 1.0, 0.0, 0.0);
 	m = matrixView;
 	m = translate(m, vec3(25.0f, -1.5f, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.15f, 0.15f, 0.15f));
 	helmet.render(m);
 
-	Program.SendUniform("materialSpecular", 1.0, 1.0, 1.0);
 	//room
+	Program.SendUniform("materialAmbient", 0.4, 0.4, 0.4);
+	Program.SendUniform("materialDiffuse", 0.6, 0.6, 0.6);
+	Program.SendUniform("materialSpecular", 1.0, 1.0, 1.0);
 	m = matrixView;
 	m = translate(m, vec3(20.0f, -16.7, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.15f, 0.15f, 0.15f));
 	room.render(m);
 
-	Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
 	//Bulb
+	Program.SendUniform("materialAmbient", 1.0, 1.0, 0.0);
+	Program.SendUniform("materialDiffuse", 1.0, 1.0, 0.0);
+	Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
 	m = matrixView;
-	m = translate(m, vec3(-2.95f, 4.24f, -1.0f));
+	m = translate(m, vec3(20.0f, 10.0f, -1.0f));
 	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
 	Program.SendUniform("matrixModelView", m);
-	glutSolidSphere(10, 32, 32);
+	glutSolidSphere(5, 32, 32);
 
 
+	/////////////////  PYRAMID  ///////////////////////////
 
 	//Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
 	//// Get Attribute Locations
@@ -242,22 +257,31 @@ void renderScene(mat4 &matrixView, float time)
 	//glDisableVertexAttribArray(attribNormal);
 
 
-	//LIGHTS
+	//////////////////////   LIGHTS   //////////////////////////
 
-	//Program.SendUniform("lightAmbient.color", 0.1, 0.1, 0.1);
-	//Program.SendUniform("materialAmbient", 1.0, 1.0, 1.0);
+	//AMBIENT LIGHT
+	Program.SendUniform("lightAmbient.color", 0.5, 0.5, 0.5);
 
-	//Program.SendUniform("lightDir.direction", 1.0, 0.5, 1.0);
-	//Program.SendUniform("lightDir.diffuse", 0.9, 0.9, 0.9);	  // dimmed white light
+	//DIRECTIONAL LIGHT
+	Program.SendUniform("lightDir.direction", 1.0, 0.5, 1.0);
+	Program.SendUniform("lightDir.diffuse", 0.9, 0.9, 0.9);
 
-	Program.SendUniform("lightPoint.position", -2.95, 4.24, -1.0);
-	//Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
-	Program.SendUniform("lightPoint.specular", 1.0, 1.0, 1.0);
+	//POINT LIGHT 1
+	Program.SendUniform("lightPoint.position", 20.0f, 10.0f, -1.0f);
+	Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint.specular", 0.5, 0.5, 0.5);
 	Program.SendUniform("Shininess", 3.0f);
-	
+
+	////POINT LIGHT 2
+	//Program.SendUniform("lightPoint2.position", -2.95, 4.24, -1.0);
+	//Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
+	//Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
+	//Program.SendUniform("Shininess", 3.0f);
+
 
 
 	Program.SendUniform("matrixModelView", m);
+	
 }
 
 void onRender()
