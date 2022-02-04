@@ -8,16 +8,20 @@ uniform mat4 matrixModelView;
 
 // Materials
 uniform vec3 materialAmbient;
+uniform vec3 materialEmissive;
 uniform vec3 materialDiffuse;
 uniform vec3 materialSpecular;
 uniform float shininess;
  
 in vec3 aVertex;
 in vec3 aNormal;
+in vec2 aTexCoord;
 
 out vec4 color;
-vec4 position;
-vec3 normal;
+out vec4 position;
+out vec3 normal;
+out vec2 texCoord0;
+
 
 // Light declarations
 /////////////////////////////
@@ -52,34 +56,20 @@ vec4 DirectionalLight(DIRECTIONAL light)
 	return color;
 }
 /////////////////////////////
-struct POINT
+
+struct EMISSIVE
 {
-	vec3 position;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 color;
 };
-uniform POINT lightPoint;
 
-vec4 PointLight(POINT light)
+uniform EMISSIVE lightEmissive;
+
+vec4 EmissiveLight(EMISSIVE light)
 {
-	// Calculate Point Light
-	vec4 color = vec4(0, 0, 0, 0);
-	// calculation code to be inserted in place of this comment
-	vec3 L = normalize(matrixView * vec4(light.position, 1) - position).xyz;
-	float NdotL = dot(normal, L);
-	if (NdotL > 0)
-		color += vec4(materialDiffuse * light.diffuse, 1) * NdotL;
-
-	//Specular - Shininess
-	vec3 V = normalize(-position.xyz);
-	vec3 R = reflect(-L, normal);
-	float RdotV = dot(R, V);
-	if (NdotL > 0 && RdotV > 0)
-	    color += vec4(materialSpecular * light.specular * pow(RdotV, shininess), 1);
-
-	return color;
-
+	// Calculate Emissive Light
+	return vec4(materialEmissive * light.color, 1);
 }
+
 
 
 void main(void) 
@@ -96,7 +86,10 @@ void main(void)
 	color = vec4(0, 0, 0, 1);
 	color += AmbientLight(lightAmbient);
 	color += DirectionalLight(lightDir);
-	color += PointLight(lightPoint);
+	color += EmissiveLight(lightEmissive);
+	
+	// calculate texture coordinate
+	texCoord0 = aTexCoord;
 
 }
 

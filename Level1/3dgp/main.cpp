@@ -18,6 +18,8 @@ unsigned vertexBuffer = 0;
 unsigned normalBuffer = 0;
 unsigned indexBuffer = 0;
 
+bool lightOn0, lightOn1, lightOn2, lightOn3;
+
 float vertices[] = {
 	-4, 0, -4, 4, 0, -4, 0, 7, 0, -4, 0, 4, 4, 0, 4, 0, 7, 0,
 	-4, 0, -4, -4, 0, 4, 0, 7, 0, 4, 0, -4, 4, 0, 4, 0, 7, 0,
@@ -37,8 +39,14 @@ C3dglModel vase;
 C3dglModel teapot;
 C3dglModel helmet;
 C3dglModel room;
+C3dglModel lamp0;
+C3dglModel lamp1;
 
 C3dglProgram Program;
+
+C3dglBitmap bm;
+GLuint idTexWood;
+GLuint idTexNone;
 
 // camera position (for first person type camera navigation)
 mat4 matrixView;			// The View Matrix
@@ -99,6 +107,8 @@ bool init()
 	if (!teapot.load("models\\teapot.obj")) return false;
 	if (!helmet.load("models\\Mandalorian.obj")) return false;
 	if (!room.load("models\\LivingRoom.obj")) return false;
+	if (!lamp0.load("models\\lamp.obj")) return false;
+	if (!lamp1.load("models\\lamp.obj")) return false;
 
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1.f), radians(angleTilt), vec3(1.f, 0.f, 0.f));
@@ -106,6 +116,49 @@ bool init()
 		vec3(0.0, 5.0, 25.0),
 		vec3(0.0, 5.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
+
+	//TEXTURES
+	bm.Load("textures/oak.bmp", GL_RGBA);
+	if (!bm.GetBits()) return false;
+
+	// Send the texture info to the shaders
+	Program.SendUniform("texture0", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &idTexWood);
+	glBindTexture(GL_TEXTURE_2D, idTexWood);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.GetWidth(), bm.GetHeight(), 0, GL_RGBA,
+		GL_UNSIGNED_BYTE, bm.GetBits());
+
+	//////////////////////   LIGHTS   //////////////////////////
+
+	lightOn0 = true;
+	lightOn1 = true;
+	lightOn2 = true;
+	lightOn3 = true;
+
+	//AMBIENT LIGHT
+	Program.SendUniform("lightAmbient.color", 0.1, 0.1, 0.1);
+
+	//DIRECTIONAL LIGHT
+	Program.SendUniform("lightDir.direction", 1.0, 0.5, 1.0);
+	Program.SendUniform("lightDir.diffuse", 0.3, 0.3, 0.3);
+
+	//POINT LIGHT 1
+	Program.SendUniform("lightPoint.position", 6.7f, 3.8f, -6.0f);
+	Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("shininess", 13.0f);
+
+	////POINT LIGHT 2
+	Program.SendUniform("lightPoint2.position", 26.7f, 3.8f, 6.0f);
+	Program.SendUniform("lightPoint2.diffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("shininess", 13.0f);
+
+	//EMISSIVE
+	Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
 
 
 
@@ -133,21 +186,13 @@ void renderScene(mat4 &matrixView, float time)
 	mat4 m;
 
 	Program.SendUniform("matrixView", matrixView); //ESSENTIAL FOR DIRECTIONAL LIGHT
-
-
-	// camera object
-	Program.SendUniform("materialAmbient", 0.0, 0.0, 0.0);
-	Program.SendUniform("materialDiffuse", 0.0, 0.0, 0.0);
-	Program.SendUniform("materialSpecular", 0.0, 0.0, 0.0);
-	m = matrixView;
-	m = translate(m, vec3(-3.0f, 5, 25.0f));
-	m = rotate(m, radians(225.f), vec3(0.0f, 1.0f, 0.0f));
-	m = scale(m, vec3(0.04f, 0.04f, 0.04f));
-	camera.render(m);
+	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0); //Avoid Emissive Light from all the objects but the bulbs
 
 	//table
-	Program.SendUniform("materialAmbient", 0.6, 0.6, 0.6);
-	Program.SendUniform("materialDiffuse", 0.0, 0.0, 0.0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, idTexWood);
+	Program.SendUniform("materialAmbient", 1.0, 1.0, 1.0);
+	Program.SendUniform("materialDiffuse", 1.0, 1.0, 1.0);
 	Program.SendUniform("materialSpecular", 1.0, 1.0, 1.0);
 	m = matrixView;
 	m = translate(m, vec3(20.0f, -16.7, 0.0f));
@@ -156,10 +201,10 @@ void renderScene(mat4 &matrixView, float time)
 	table.render(1, m);
 
 	//chairs
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++) 
 	{
 		float tx = 20.0f, ty = -16.7f, tz = 0.0, rotation = 180.f;
-		if (i == 1)
+		if (i == 1) 
 		{
 			tx = 20.0f; ty = -16.7; tz = 0.0f; rotation = 0.f;
 		}
@@ -178,6 +223,14 @@ void renderScene(mat4 &matrixView, float time)
 		table.render(0, m);
 	}
 
+	// none (simple-white) texture
+	glGenTextures(1, &idTexNone);
+	glBindTexture(GL_TEXTURE_2D, idTexNone);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	BYTE bytes[] = { 255, 255, 255 };
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
+
+
 	// vase
 	Program.SendUniform("materialAmbient", 0.0, 0.0, 1.0);
 	Program.SendUniform("materialDiffuse", 0.0, 0.0, 1.0);
@@ -189,8 +242,8 @@ void renderScene(mat4 &matrixView, float time)
 	vase.render(m);
 
 	// teapot
-	Program.SendUniform("materialAmbient", 0.0, 1.0, 0.0);
-	Program.SendUniform("materialDiffuse", 0.0, 1.0, 0.0);
+	Program.SendUniform("materialAmbient", 1.0, 1.0, 0.0);
+	Program.SendUniform("materialDiffuse", 1.0, 1.0, 0.0);
 	Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
 	m = matrixView;
 	m = translate(m, vec3(15.0f, -1.5f, 0.0f));
@@ -210,28 +263,81 @@ void renderScene(mat4 &matrixView, float time)
 
 	//room
 	Program.SendUniform("materialAmbient", 0.4, 0.4, 0.4);
-	Program.SendUniform("materialDiffuse", 0.6, 0.6, 0.6);
-	Program.SendUniform("materialSpecular", 1.0, 1.0, 1.0);
+	Program.SendUniform("materialDiffuse", 0.4, 0.4, 0.4);
+	Program.SendUniform("materialSpecular", 0.0, 0.0, 0.0);
 	m = matrixView;
 	m = translate(m, vec3(20.0f, -16.7, 0.0f));
 	m = rotate(m, radians(180.f), vec3(0.0f, 1.0f, 0.0f));
 	m = scale(m, vec3(0.15f, 0.15f, 0.15f));
 	room.render(m);
 
-	//Bulb
-	Program.SendUniform("materialAmbient", 1.0, 1.0, 0.0);
-	Program.SendUniform("materialDiffuse", 1.0, 1.0, 0.0);
-	Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
+	//lamp
+	Program.SendUniform("materialAmbient", 1.0, 0.0, 1.0);
+	Program.SendUniform("materialDiffuse", 1.0, 0.0, 1.0);
+	Program.SendUniform("materialSpecular", 1.0, 0.0, 1.0);
 	m = matrixView;
-	m = translate(m, vec3(20.0f, 10.0f, -1.0f));
+	m = translate(m, vec3(10.0f, -1.5f, -6.0f));
+	m = rotate(m, radians(0.f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(0.09f, 0.09f, 0.09f));
+	lamp0.render(m);
+
+	//Bulb
+	Program.SendUniform("materialAmbient", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialDiffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialSpecular", 0.5, 0.5, 0.5);
+	if (lightOn1) 
+	{
+		Program.SendUniform("materialEmissive", 1.0, 1.0, 1.0);
+	}
+	else 
+	{
+		Program.SendUniform("materialEmissive", 0.5,0.5,0.5);
+	}
+	m = matrixView;
+	m = translate(m, vec3(6.7f, 3.8f, -6.0f));
 	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
 	Program.SendUniform("matrixModelView", m);
-	glutSolidSphere(5, 32, 32);
+	glutSolidSphere(4, 32, 32);
+
+	//lamp2
+	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0);
+	Program.SendUniform("materialAmbient", 1.0, 0.0, 1.0);
+	Program.SendUniform("materialDiffuse", 1.0, 0.0, 1.0);
+	Program.SendUniform("materialSpecular", 1.0, 0.0, 1.0);
+	m = matrixView;
+	m = translate(m, vec3(30.0f, -1.5f, 6.0f));
+	m = rotate(m, radians(0.f), vec3(0.0f, 1.0f, 0.0f));
+	m = scale(m, vec3(0.09f, 0.09f, 0.09f));
+	lamp1.render(m);
 
 
+	//Bulb2
+	Program.SendUniform("materialAmbient", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialDiffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialSpecular", 0.5, 0.5, 0.5);
+	if (lightOn0)
+	{
+		Program.SendUniform("materialEmissive", 1.0, 1.0, 1.0);
+	}
+	else
+	{
+		Program.SendUniform("materialEmissive", 0.5, 0.5, 0.5);
+	}
+	m = matrixView;
+	m = translate(m, vec3(6.7f, 3.8f, -6.0f));
+	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
+	Program.SendUniform("matrixModelView", m);
+	glutSolidSphere(4, 32, 32);
+	m = matrixView;
+	m = translate(m, vec3(26.7f, 3.8f, 6.0f));
+	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
+	Program.SendUniform("matrixModelView", m);
+	glutSolidSphere(4, 32, 32);
+
+	
 	/////////////////  PYRAMID  ///////////////////////////
-
-	//Program.SendUniform("materialSpecular", 1.0, 1.0, 0.0);
+	
+	
 	//// Get Attribute Locations
 	//GLuint attribVertex = Program.GetAttribLocation("aVertex");
 	//GLuint attribNormal = Program.GetAttribLocation("aNormal");
@@ -248,40 +354,14 @@ void renderScene(mat4 &matrixView, float time)
 	//glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
 	//glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-	//// Draw triangles – using index buffer
+	////Draw triangles – using index buffer
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 	//glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
-	//// Disable arrays
+	////Disable arrays
 	//glDisableVertexAttribArray(attribVertex);
 	//glDisableVertexAttribArray(attribNormal);
 
-
-	//////////////////////   LIGHTS   //////////////////////////
-
-	//AMBIENT LIGHT
-	Program.SendUniform("lightAmbient.color", 0.5, 0.5, 0.5);
-
-	//DIRECTIONAL LIGHT
-	Program.SendUniform("lightDir.direction", 1.0, 0.5, 1.0);
-	Program.SendUniform("lightDir.diffuse", 0.9, 0.9, 0.9);
-
-	//POINT LIGHT 1
-	Program.SendUniform("lightPoint.position", 20.0f, 10.0f, -1.0f);
-	Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
-	Program.SendUniform("lightPoint.specular", 0.5, 0.5, 0.5);
-	Program.SendUniform("Shininess", 3.0f);
-
-	////POINT LIGHT 2
-	//Program.SendUniform("lightPoint2.position", -2.95, 4.24, -1.0);
-	//Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
-	//Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
-	//Program.SendUniform("Shininess", 3.0f);
-
-
-
-	Program.SendUniform("matrixModelView", m);
-	
 }
 
 void onRender()
@@ -310,6 +390,8 @@ void onRender()
 
 	// proceed the animation
 	glutPostRedisplay();
+
+	Program.SendUniform("matrixModelView", m);
 }
 
 // called before window opened or resized - to setup the Projection Matrix
@@ -334,6 +416,75 @@ void onKeyDown(unsigned char key, int x, int y)
 	case 'd': cam.x = std::min(cam.x * 1.05f, -0.01f); angleRot = -0.1f; break;
 	case 'e': cam.y = std::max(cam.y * 1.05f, 0.01f); break;
 	case 'q': cam.y = std::min(cam.y * 1.05f, -0.01f); break;
+
+	case '1': 
+		if (lightOn0) 
+		{	
+			//light off
+			Program.SendUniform("lightPoint2.specular", 0.0, 0.0, 0.0);
+			Program.SendUniform("lightPoint2.diffuse", 0.0, 0.0, 0.0);
+			lightOn0 = false;
+			break;
+		}
+		else 
+		{
+			//light on
+			Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
+			Program.SendUniform("lightPoint2.diffuse", 0.5, 0.5, 0.5);
+			lightOn0 = true;
+			break;
+		}
+
+	case '2':
+		if (lightOn1)
+		{
+			//light off
+			Program.SendUniform("lightPoint.specular", 0.0, 0.0, 0.0);
+			Program.SendUniform("lightPoint.diffuse", 0.0, 0.0, 0.0);
+
+			lightOn1 = false;
+			break;
+		}
+		else
+		{
+			//light on
+			Program.SendUniform("lightPoint.specular", 0.5, 0.5, 0.5);
+			Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
+			lightOn1 = true;
+			break;
+		}
+
+	case '3':
+		if (lightOn2)
+		{
+			//light off
+			Program.SendUniform("lightAmbient.color", 0.0, 0.0, 0.0);
+			lightOn2 = false;
+			break;
+		}
+		else
+		{
+			//light on
+			Program.SendUniform("lightAmbient.color", 0.1, 0.1, 0.1);
+			lightOn2 = true;
+			break;
+		}
+
+	case '4':
+		if (lightOn3)
+		{
+			//light off
+			Program.SendUniform("lightDir.diffuse", 0.0, 0.0, 0.0);
+			lightOn3 = false;
+			break;
+		}
+		else
+		{
+			//light on
+			Program.SendUniform("lightDir.diffuse", 0.3, 0.3, 0.3);
+			lightOn3 = true;
+			break;
+		}
 	}
 	// speed limit
 	cam.x = std::max(-0.15f, std::min(0.15f, cam.x));
@@ -341,6 +492,17 @@ void onKeyDown(unsigned char key, int x, int y)
 	cam.z = std::max(-0.15f, std::min(0.15f, cam.z));
 	// stop orbiting
 	if ((glutGetModifiers() & GLUT_ACTIVE_SHIFT) == 0) angleRot = 0;
+
+	//All the lights off? Set emissive light (bulbs) black otherwise white (grey bulbs)
+	if (!lightOn0 && !lightOn1 && !lightOn2 && !lightOn3)
+	{
+		Program.SendUniform("lightEmissive.color", 0.0, 0.0, 0.0);
+
+	}
+	else
+	{
+		Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
+	}
 }
 
 // Handle WASDQE keys (key up)
