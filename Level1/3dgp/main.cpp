@@ -18,7 +18,7 @@ unsigned vertexBuffer = 0;
 unsigned normalBuffer = 0;
 unsigned indexBuffer = 0;
 
-bool lightOn0, lightOn1, lightOn2, lightOn3;
+bool lightOn0, lightOn1, lightOn2, lightOn3, lightOn4;
 
 float vertices[] = {
 	-4, 0, -4, 4, 0, -4, 0, 7, 0, -4, 0, 4, 4, 0, 4, 0, 7, 0,
@@ -41,6 +41,7 @@ C3dglModel helmet;
 C3dglModel room;
 C3dglModel lamp0;
 C3dglModel lamp1;
+C3dglModel ceillamp;
 
 C3dglProgram Program;
 
@@ -54,6 +55,7 @@ float angleTilt = 15;		// Tilt Angle
 float angleRot = 0.1f;		// Camera orbiting angle
 vec3 cam(0);				// Camera movement values
 
+
 bool init()
 {
 	// rendering states
@@ -64,6 +66,7 @@ bool init()
 
 	// setup lighting
 
+	
 
 	//Initialise Shaders
 	C3dglShader VertexShader;
@@ -106,15 +109,18 @@ bool init()
 	if (!vase.load("models\\vase.obj")) return false;
 	if (!teapot.load("models\\teapot.obj")) return false;
 	if (!helmet.load("models\\Mandalorian.obj")) return false;
-	if (!room.load("models\\LivingRoom.obj")) return false;
+	if (!room.load("models\\LivingRoomObj\\LivingRoom.obj")) return false;
 	if (!lamp0.load("models\\lamp.obj")) return false;
 	if (!lamp1.load("models\\lamp.obj")) return false;
+	if (!ceillamp.load("models\\ceilinglamp.3ds")) return false;
+
+	room.loadMaterials("models\\LivingRoomObj\\");
 
 	// Initialise the View Matrix (initial position of the camera)
 	matrixView = rotate(mat4(1.f), radians(angleTilt), vec3(1.f, 0.f, 0.f));
 	matrixView *= lookAt(
-		vec3(0.0, 5.0, 25.0),
-		vec3(0.0, 5.0, 0.0),
+		vec3(0.0, 18.0, 25.0),
+		vec3(0.0, 18.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
 
 	//TEXTURES
@@ -131,12 +137,20 @@ bool init()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.GetWidth(), bm.GetHeight(), 0, GL_RGBA,
 		GL_UNSIGNED_BYTE, bm.GetBits());
 
+	// none (simple-white) texture
+	glGenTextures(1, &idTexNone);
+	glBindTexture(GL_TEXTURE_2D, idTexNone);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	BYTE bytes[] = { 255, 255, 255 };
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
+
 	//////////////////////   LIGHTS   //////////////////////////
 
 	lightOn0 = true;
 	lightOn1 = true;
 	lightOn2 = true;
 	lightOn3 = true;
+	lightOn4 = true;
 
 	//AMBIENT LIGHT
 	Program.SendUniform("lightAmbient.color", 0.1, 0.1, 0.1);
@@ -155,6 +169,12 @@ bool init()
 	Program.SendUniform("lightPoint2.position", 26.7f, 3.8f, 6.0f);
 	Program.SendUniform("lightPoint2.diffuse", 0.5, 0.5, 0.5);
 	Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("shininess", 13.0f);
+
+	////POINT LIGHT 3  (SWINGING/ANIMATED LIGHT)
+	Program.SendUniform("lightPoint3.position", 20.0f, 13.0f, 0.0f);
+	Program.SendUniform("lightPoint3.diffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint3.specular", 0.5, 0.5, 0.5);
 	Program.SendUniform("shininess", 13.0f);
 
 	//EMISSIVE
@@ -187,6 +207,8 @@ void renderScene(mat4 &matrixView, float time)
 
 	Program.SendUniform("matrixView", matrixView); //ESSENTIAL FOR DIRECTIONAL LIGHT
 	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0); //Avoid Emissive Light from all the objects but the bulbs
+
+
 
 	//table
 	glActiveTexture(GL_TEXTURE0);
@@ -223,12 +245,7 @@ void renderScene(mat4 &matrixView, float time)
 		table.render(0, m);
 	}
 
-	// none (simple-white) texture
-	glGenTextures(1, &idTexNone);
 	glBindTexture(GL_TEXTURE_2D, idTexNone);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	BYTE bytes[] = { 255, 255, 255 };
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
 
 
 	// vase
@@ -275,6 +292,7 @@ void renderScene(mat4 &matrixView, float time)
 	Program.SendUniform("materialAmbient", 1.0, 0.0, 1.0);
 	Program.SendUniform("materialDiffuse", 1.0, 0.0, 1.0);
 	Program.SendUniform("materialSpecular", 1.0, 0.0, 1.0);
+	glBindTexture(GL_TEXTURE_2D, idTexNone);
 	m = matrixView;
 	m = translate(m, vec3(10.0f, -1.5f, -6.0f));
 	m = rotate(m, radians(0.f), vec3(0.0f, 1.0f, 0.0f));
@@ -291,7 +309,7 @@ void renderScene(mat4 &matrixView, float time)
 	}
 	else 
 	{
-		Program.SendUniform("materialEmissive", 0.5,0.5,0.5);
+		Program.SendUniform("materialEmissive", 0.2, 0.2, 0.2);
 	}
 	m = matrixView;
 	m = translate(m, vec3(6.7f, 3.8f, -6.0f));
@@ -321,18 +339,65 @@ void renderScene(mat4 &matrixView, float time)
 	}
 	else
 	{
-		Program.SendUniform("materialEmissive", 0.5, 0.5, 0.5);
+		Program.SendUniform("materialEmissive", 0.2, 0.2, 0.2);
 	}
-	m = matrixView;
-	m = translate(m, vec3(6.7f, 3.8f, -6.0f));
-	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
-	Program.SendUniform("matrixModelView", m);
-	glutSolidSphere(4, 32, 32);
 	m = matrixView;
 	m = translate(m, vec3(26.7f, 3.8f, 6.0f));
 	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
 	Program.SendUniform("matrixModelView", m);
 	glutSolidSphere(4, 32, 32);
+
+
+	/////////////////////////////////////
+
+	//ANIMATED LIGHT 
+
+	// Pendulum mechanics
+	static float prevT = 0;		// previous timestamp
+	static float alpha = 0;		// current pendulum angle
+	static float delta = 0.2f;		// angle increase rate (Hooke's law)
+	delta -= alpha * (time - prevT) * 0.02;
+	alpha += delta;
+	prevT = time;
+	
+	
+	// Ceiling lamp
+	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0);
+	Program.SendUniform("materialAmbient", 0.66, 0.66, 0.66);
+	Program.SendUniform("materialDiffuse", 0.66, 0.66, 0.66);
+	Program.SendUniform("materialSpecular", 0.66, 0.66, 0.66);
+	m = matrixView;
+	m = translate(m, vec3(20, 34, 0));
+	m = rotate(m, radians(alpha), vec3(0.5, 0, 1));
+	m = translate(m, vec3(-20, -34, 0));
+	mat4 m1 = m;
+	m = translate(m, vec3(20, 34, 0));
+	m = scale(m, vec3(0.2f, 0.2f, 0.2f));
+	ceillamp.render(m);
+
+	//object bulb attached to the matrix model view
+	Program.SendUniform("materialAmbient", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialDiffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("materialSpecular", 0.5, 0.5, 0.5);
+	if (lightOn4)
+	{
+		Program.SendUniform("materialEmissive", 1.0, 1.0, 1.0);
+	}
+	else
+	{
+		Program.SendUniform("materialEmissive", 0.2, 0.2, 0.2);
+	}
+	m = m1;
+	m = translate(m, vec3(20.0f, 13.0f, 0.0f));
+	m = scale(m, vec3(0.12f, 0.12f, 0.12f));
+	Program.SendUniform("matrixModelView", m);
+	glutSolidSphere(4, 32, 32);
+	// the actual light 
+	m = m1;
+	m = translate(m, vec3(20.0f, 13.0f, 0.0f));
+	m = scale(m, vec3(0.12f, 0.12f, 0.12f));
+	Program.SendUniform("lightPoint3.matrix", m);
+	
 
 	
 	/////////////////  PYRAMID  ///////////////////////////
@@ -485,6 +550,23 @@ void onKeyDown(unsigned char key, int x, int y)
 			lightOn3 = true;
 			break;
 		}
+	case '5':
+		if (lightOn4)
+		{
+			//light off
+			Program.SendUniform("lightPoint3.specular", 0.0, 0.0, 0.0);
+			Program.SendUniform("lightPoint3.diffuse", 0.0, 0.0, 0.0);
+			lightOn4 = false;
+			break;
+		}
+		else
+		{
+			//light on
+			Program.SendUniform("lightPoint3.specular", 0.5, 0.5, 0.5);
+			Program.SendUniform("lightPoint3.diffuse", 0.5, 0.5, 0.5);
+			lightOn4 = true;
+			break;
+		}
 	}
 	// speed limit
 	cam.x = std::max(-0.15f, std::min(0.15f, cam.x));
@@ -494,7 +576,7 @@ void onKeyDown(unsigned char key, int x, int y)
 	if ((glutGetModifiers() & GLUT_ACTIVE_SHIFT) == 0) angleRot = 0;
 
 	//All the lights off? Set emissive light (bulbs) black otherwise white (grey bulbs)
-	if (!lightOn0 && !lightOn1 && !lightOn2 && !lightOn3)
+	if (!lightOn0 && !lightOn1 && !lightOn2 && !lightOn3 && !lightOn4)
 	{
 		Program.SendUniform("lightEmissive.color", 0.0, 0.0, 0.0);
 
