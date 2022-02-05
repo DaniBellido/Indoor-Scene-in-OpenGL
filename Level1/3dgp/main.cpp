@@ -1,4 +1,4 @@
-//backUp version
+//SPOTLIGHT FAIL version
 #include <iostream>
 #include "GL/glew.h"
 #include "GL/3dgl.h"
@@ -15,23 +15,8 @@ using namespace std;
 using namespace _3dgl;
 using namespace glm;
 
-unsigned vertexBuffer = 0;
-unsigned normalBuffer = 0;
-unsigned indexBuffer = 0;
 
 bool lightOn0, lightOn1, lightOn2, lightOn3, lightOn4;
-
-float vertices[] = {
-	-4, 0, -4, 4, 0, -4, 0, 7, 0, -4, 0, 4, 4, 0, 4, 0, 7, 0,
-	-4, 0, -4, -4, 0, 4, 0, 7, 0, 4, 0, -4, 4, 0, 4, 0, 7, 0,
-	-4, 0, -4, -4, 0, 4, 4, 0, -4, 4, 0, 4 };
-float normals[] = {
-	0, 4, -7, 0, 4, -7, 0, 4, -7, 0, 4, 7, 0, 4, 7, 0, 4, 7,
-	-7, 4, 0, -7, 4, 0, -7, 4, 0, 7, 4, 0, 7, 4, 0, 7, 4, 0,
-	0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0 };
-unsigned indices[] = {
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 13, 14, 15 };
-
 
 // 3D models
 C3dglModel camera;
@@ -65,10 +50,6 @@ bool init()
 	glShadeModel(GL_SMOOTH);	// smooth shading mode is the default one; try GL_FLAT here!
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);	// this is the default one; try GL_LINE!
 
-	// setup lighting
-
-	
-
 	//Initialise Shaders
 	C3dglShader VertexShader;
 	C3dglShader FragmentShader;
@@ -86,23 +67,6 @@ bool init()
 	if (!Program.Attach(FragmentShader))return false;
 	if (!Program.Link())return false;
 	if (!Program.Use(true))return false;
-
-	// prepare vertex data
-	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// prepare normal data
-	glGenBuffers(1, &normalBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
-
-	// prepare indices array
-	glGenBuffers(1, &indexBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-
 
 	// load your 3D models here!
 	if (!camera.load("models\\camera.3ds")) return false;
@@ -172,11 +136,15 @@ bool init()
 	Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
 	Program.SendUniform("shininess", 13.0f);
 
-	////POINT LIGHT 3  (SWINGING/ANIMATED LIGHT)
+	////SPOT LIGHT 1  (SWINGING/ANIMATED LIGHT)
 	Program.SendUniform("spotLight1.position", 20.0f, 13.0f, 0.0f);
 	Program.SendUniform("spotLight1.diffuse", 0.5, 0.5, 0.5);
 	Program.SendUniform("spotLight1.specular", 0.5, 0.5, 0.5);
 	Program.SendUniform("shininess", 13.0f);
+	//new uniform values
+	Program.SendUniform("spotLight1.direction", 0.0, -1.0, 0.0);
+	Program.SendUniform("spotLight1.cutoff", radians(45.0f));
+	Program.SendUniform("spotLight1.attenuation", 3);
 
 	//EMISSIVE
 	Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
@@ -185,7 +153,7 @@ bool init()
 
 
 	// setup the screen background colour
-	glClearColor(0.18f, 0.25f, 0.22f, 1.0f);   // deep grey background
+	glClearColor(0.0f, 0.0f, 0.2f, 1.0f);   // dark blue background
 
 	cout << endl;
 	cout << "Use:" << endl;
@@ -208,7 +176,6 @@ void renderScene(mat4 &matrixView, float time)
 
 	Program.SendUniform("matrixView", matrixView); //ESSENTIAL FOR DIRECTIONAL LIGHT
 	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0); //Avoid Emissive Light from all the objects but the bulbs
-
 
 
 	//table
@@ -401,34 +368,6 @@ void renderScene(mat4 &matrixView, float time)
 	m = scale(m, vec3(0.12f, 0.12f, 0.12f));
 	Program.SendUniform("spotLight1.matrix", m);
 	
-
-	
-	/////////////////  PYRAMID  ///////////////////////////
-	
-	
-	//// Get Attribute Locations
-	//GLuint attribVertex = Program.GetAttribLocation("aVertex");
-	//GLuint attribNormal = Program.GetAttribLocation("aNormal");
-
-	//// Enable vertex attribute arrays
-	//glEnableVertexAttribArray(attribVertex);
-	//glEnableVertexAttribArray(attribNormal);
-
-	//// Bind (activate) the vertex buffer and set the pointer to it
-	//glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	//glVertexAttribPointer(attribVertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	//// Bind (activate) the normal buffer and set the pointer to it
-	//glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-	//glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	////Draw triangles – using index buffer
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	//glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
-
-	////Disable arrays
-	//glDisableVertexAttribArray(attribVertex);
-	//glDisableVertexAttribArray(attribNormal);
 
 }
 

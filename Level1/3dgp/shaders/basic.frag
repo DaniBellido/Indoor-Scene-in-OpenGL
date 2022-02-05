@@ -57,9 +57,10 @@ struct SPOT
 	vec3 direction;
 	float cutoff;
 	float attenuation;
+
+
 	mat4 matrix;
 	vec3 position;
-
 	vec3 diffuse;
 	vec3 specular;
 };
@@ -86,22 +87,23 @@ vec4 SpotLight(SPOT light)
 
 
 	// HERE GOES THE NEW CODE TO DETERMINE THE SPOT FACTOR
-//	vec3 D = normalize(mat3(light.matrix) * light.direction);
-//	float s = dot(-L, D); //spotfactor
-//	float attenuation = acos(s);
-//	float cutoff = clamp(radians(attenuation), 0, 90);
-//
-//	if(attenuation <= cutoff)
-//	{
-//		s = pow(s, attenuation);
-//
-//	}
-//	else
-//	{
-//		s = 0;
-//	}
-//	return s * outColor;
-	return outColor;
+	vec3 D = normalize(mat3(light.matrix) * light.direction);
+	float s = dot(-L, D); //spotfactor
+	float attenuation = acos(s);
+	float cutoff = attenuation;
+
+	if(attenuation <= cutoff)
+	{
+		s = pow(s, attenuation);
+
+	}
+	else
+	{
+		s = 0;
+	}
+
+	return s * outColor;
+	//return outColor;
 }
 
 
