@@ -1,3 +1,4 @@
+//backUp version
 #include <iostream>
 #include "GL/glew.h"
 #include "GL/3dgl.h"
@@ -172,9 +173,9 @@ bool init()
 	Program.SendUniform("shininess", 13.0f);
 
 	////POINT LIGHT 3  (SWINGING/ANIMATED LIGHT)
-	Program.SendUniform("lightPoint3.position", 20.0f, 13.0f, 0.0f);
-	Program.SendUniform("lightPoint3.diffuse", 0.5, 0.5, 0.5);
-	Program.SendUniform("lightPoint3.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("spotLight1.position", 20.0f, 13.0f, 0.0f);
+	Program.SendUniform("spotLight1.diffuse", 0.5, 0.5, 0.5);
+	Program.SendUniform("spotLight1.specular", 0.5, 0.5, 0.5);
 	Program.SendUniform("shininess", 13.0f);
 
 	//EMISSIVE
@@ -316,6 +317,7 @@ void renderScene(mat4 &matrixView, float time)
 	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
 	Program.SendUniform("matrixModelView", m);
 	glutSolidSphere(4, 32, 32);
+	Program.SendUniform("lightPoint.matrix", m);
 
 	//lamp2
 	Program.SendUniform("materialEmissive", 0.0, 0.0, 0.0);
@@ -346,11 +348,12 @@ void renderScene(mat4 &matrixView, float time)
 	m = scale(m, vec3(0.1f, 0.1f, 0.1f));
 	Program.SendUniform("matrixModelView", m);
 	glutSolidSphere(4, 32, 32);
+	Program.SendUniform("lightPoint2.matrix", m);
 
 
 	/////////////////////////////////////
 
-	//ANIMATED LIGHT 
+	//ANIMATED LIGHT - SPOT LIGHT
 
 	// Pendulum mechanics
 	static float prevT = 0;		// previous timestamp
@@ -396,7 +399,7 @@ void renderScene(mat4 &matrixView, float time)
 	m = m1;
 	m = translate(m, vec3(20.0f, 13.0f, 0.0f));
 	m = scale(m, vec3(0.12f, 0.12f, 0.12f));
-	Program.SendUniform("lightPoint3.matrix", m);
+	Program.SendUniform("spotLight1.matrix", m);
 	
 
 	
@@ -554,16 +557,16 @@ void onKeyDown(unsigned char key, int x, int y)
 		if (lightOn4)
 		{
 			//light off
-			Program.SendUniform("lightPoint3.specular", 0.0, 0.0, 0.0);
-			Program.SendUniform("lightPoint3.diffuse", 0.0, 0.0, 0.0);
+			Program.SendUniform("spotLight1.specular", 0.0, 0.0, 0.0);
+			Program.SendUniform("spotLight1.diffuse", 0.0, 0.0, 0.0);
 			lightOn4 = false;
 			break;
 		}
 		else
 		{
 			//light on
-			Program.SendUniform("lightPoint3.specular", 0.5, 0.5, 0.5);
-			Program.SendUniform("lightPoint3.diffuse", 0.5, 0.5, 0.5);
+			Program.SendUniform("spotLight1.specular", 0.5, 0.5, 0.5);
+			Program.SendUniform("spotLight1.diffuse", 0.5, 0.5, 0.5);
 			lightOn4 = true;
 			break;
 		}
@@ -575,7 +578,7 @@ void onKeyDown(unsigned char key, int x, int y)
 	// stop orbiting
 	if ((glutGetModifiers() & GLUT_ACTIVE_SHIFT) == 0) angleRot = 0;
 
-	//All the lights off? Set emissive light (bulbs) black otherwise white (grey bulbs)
+	//All the lights off? Set emissive light black (grey bulbs) otherwise white.
 	if (!lightOn0 && !lightOn1 && !lightOn2 && !lightOn3 && !lightOn4)
 	{
 		Program.SendUniform("lightEmissive.color", 0.0, 0.0, 0.0);

@@ -63,7 +63,7 @@ struct SPOT
 	vec3 diffuse;
 	vec3 specular;
 };
-uniform SPOT spotLight;
+uniform SPOT spotLight1;
 
 vec4 SpotLight(SPOT light)
 {
@@ -86,21 +86,22 @@ vec4 SpotLight(SPOT light)
 
 
 	// HERE GOES THE NEW CODE TO DETERMINE THE SPOT FACTOR
-	vec3 D = normalize(light.matrix * vec4(light.direction, 1) - position).xyz;
-	float s = dot(-L, D); //spotfactor
-	float attenuation = acos(s);
-	float cutoff = clamp(radians(attenuation), 0, 90);
-
-	if(attenuation <= cutoff)
-	{
-		s = pow(s, attenuation);
-
-	}
-	else
-	{
-		s = 0;
-	}
-	return s * outColor;
+//	vec3 D = normalize(mat3(light.matrix) * light.direction);
+//	float s = dot(-L, D); //spotfactor
+//	float attenuation = acos(s);
+//	float cutoff = clamp(radians(attenuation), 0, 90);
+//
+//	if(attenuation <= cutoff)
+//	{
+//		s = pow(s, attenuation);
+//
+//	}
+//	else
+//	{
+//		s = 0;
+//	}
+//	return s * outColor;
+	return outColor;
 }
 
 
@@ -111,7 +112,7 @@ void main(void)
   outColor = color;
   outColor += PointLight(lightPoint);
   outColor += PointLight(lightPoint2);
-  outColor += PointLight(lightPoint3);
+  outColor += SpotLight(spotLight1);
 
   outColor *= texture(texture0, texCoord0);
 }
