@@ -89,11 +89,11 @@ vec4 SpotLight(SPOT light)
 	vec3 D = normalize(mat3(light.matrix) * light.direction);
 	float s = dot(-L, D); //spotfactor
 	float cutoff = acos(s);// cutoff = alpha?  >>> CAN'T SEND CUTOFF DEGREES FROM main.cpp
-	//float attenuation = ?          ^
-	//                               ^
-	if(acos(s) <= cutoff)//this value^is always equal
+	float attenuation = 11.0f;
+                            
+	if( cutoff <= s )//this value is always equal
 	{
-		s = pow(s, cutoff);
+		s = pow(s, attenuation);
 	}
 	else
 	{

@@ -143,8 +143,8 @@ bool init()
 	Program.SendUniform("shininess", 13.0f);
 	//new uniform values
 	Program.SendUniform("spotLight1.direction", 0.0, -1.0, 0.0);
-	Program.SendUniform("spotLight1.cutoff", radians(90.0f));
-	Program.SendUniform("spotLight1.attenuation", radians(90.0f));
+	Program.SendUniform("spotLight1.cutoff", radians(10.0f));
+	Program.SendUniform("spotLight1.attenuation", 3);
 
 	//EMISSIVE
 	Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
