@@ -32,8 +32,10 @@ C3dglModel ceillamp;
 C3dglProgram Program;
 
 C3dglBitmap bm;
+C3dglBitmap bm2; 
 GLuint idTexWood;
 GLuint idTexNone;
+GLuint idCloth;
 
 // camera position (for first person type camera navigation)
 mat4 matrixView;			// The View Matrix
@@ -91,6 +93,8 @@ bool init()
 	//TEXTURES
 	bm.Load("textures/oak.bmp", GL_RGBA);
 	if (!bm.GetBits()) return false;
+	bm2.Load("textures/cloth.bmp", GL_RGBA);
+	if (!bm2.GetBits()) return false;
 
 	// Send the texture info to the shaders
 	Program.SendUniform("texture0", 0);
@@ -101,6 +105,12 @@ bool init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.GetWidth(), bm.GetHeight(), 0, GL_RGBA,
 		GL_UNSIGNED_BYTE, bm.GetBits());
+
+	glGenTextures(1, &idCloth);
+	glBindTexture(GL_TEXTURE_2D, idCloth);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm2.GetWidth(), bm2.GetHeight(), 0, GL_RGBA,
+		GL_UNSIGNED_BYTE, bm2.GetBits());
 
 	// none (simple-white) texture
 	glGenTextures(1, &idTexNone);
@@ -187,6 +197,8 @@ void renderScene(mat4 &matrixView, float time)
 	m = scale(m, vec3(0.020f, 0.020f, 0.020f));
 	table.render(1, m);
 
+
+	glBindTexture(GL_TEXTURE_2D, idCloth);
 	//chairs
 	for (int i = 0; i < 4; i++) 
 	{
