@@ -84,18 +84,16 @@ vec4 SpotLight(SPOT light)
 	    outColor += vec4(materialSpecular * light.specular * pow(RdotV, shininess), 1);
 
 	//////////////////////////////////////////////////////
-
-
 	// HERE GOES THE NEW CODE TO DETERMINE THE SPOT FACTOR
+
 	vec3 D = normalize(mat3(light.matrix) * light.direction);
 	float s = dot(-L, D); //spotfactor
-	float attenuation = acos(s);
-	float cutoff = attenuation;
-
-	if(attenuation <= cutoff)
+	float cutoff = acos(s);// cutoff = alpha?  >>> CAN'T SEND CUTOFF DEGREES FROM main.cpp
+	//float attenuation = ?          ^
+	//                               ^
+	if(acos(s) <= cutoff)//this value^is always equal
 	{
-		s = pow(s, attenuation);
-
+		s = pow(s, cutoff);
 	}
 	else
 	{
@@ -103,7 +101,6 @@ vec4 SpotLight(SPOT light)
 	}
 
 	return s * outColor;
-	//return outColor;
 }
 
 
@@ -111,6 +108,7 @@ vec4 SpotLight(SPOT light)
 
 void main(void) 
 {
+
   outColor = color;
   outColor += PointLight(lightPoint);
   outColor += PointLight(lightPoint2);

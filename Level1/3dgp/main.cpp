@@ -143,14 +143,11 @@ bool init()
 	Program.SendUniform("shininess", 13.0f);
 	//new uniform values
 	Program.SendUniform("spotLight1.direction", 0.0, -1.0, 0.0);
-	Program.SendUniform("spotLight1.cutoff", radians(45.0f));
-	Program.SendUniform("spotLight1.attenuation", 3);
+	Program.SendUniform("spotLight1.cutoff", radians(90.0f));
+	Program.SendUniform("spotLight1.attenuation", radians(90.0f));
 
 	//EMISSIVE
 	Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
-
-
-
 
 	// setup the screen background colour
 	glClearColor(0.0f, 0.0f, 0.2f, 1.0f);   // dark blue background
