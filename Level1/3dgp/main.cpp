@@ -143,8 +143,8 @@ bool init()
 	Program.SendUniform("shininess", 13.0f);
 	//new uniform values
 	Program.SendUniform("spotLight1.direction", 0.0, -1.0, 0.0);
-	Program.SendUniform("spotLight1.cutoff", radians(10.0f));
-	Program.SendUniform("spotLight1.attenuation", 3);
+	Program.SendUniform("spotLight1.cutoff", radians(40.0f));
+	Program.SendUniform("spotLight1.attenuation", 6);
 
 	//EMISSIVE
 	Program.SendUniform("lightEmissive.color", 1.0, 1.0, 1.0);
@@ -364,6 +364,7 @@ void renderScene(mat4 &matrixView, float time)
 	m = translate(m, vec3(20.0f, 13.0f, 0.0f));
 	m = scale(m, vec3(0.12f, 0.12f, 0.12f));
 	Program.SendUniform("spotLight1.matrix", m);
+
 	
 
 }

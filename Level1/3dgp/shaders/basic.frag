@@ -87,13 +87,12 @@ vec4 SpotLight(SPOT light)
 	// HERE GOES THE NEW CODE TO DETERMINE THE SPOT FACTOR
 
 	vec3 D = normalize(mat3(light.matrix) * light.direction);
-	float s = dot(-L, D); //spotfactor
-	float cutoff = acos(s);// cutoff = alpha?  >>> CAN'T SEND CUTOFF DEGREES FROM main.cpp
-	float attenuation = 11.0f;
+	float s = dot(-L, D); 
+	float alpha = acos(s);
                             
-	if( cutoff <= s )//this value is always equal
+	if( alpha <= light.cutoff)
 	{
-		s = pow(s, attenuation);
+		s = pow(s, light.attenuation);
 	}
 	else
 	{
