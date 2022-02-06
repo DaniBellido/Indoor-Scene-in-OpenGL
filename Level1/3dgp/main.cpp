@@ -121,29 +121,29 @@ bool init()
 
 	//////////////////////   LIGHTS   //////////////////////////
 
-	lightOn0 = true;
-	lightOn1 = true;
-	lightOn2 = true;
-	lightOn3 = true;
+	lightOn0 = false;
+	lightOn1 = false;
+	lightOn2 = false;
+	lightOn3 = false;
 	lightOn4 = true;
 
 	//AMBIENT LIGHT
-	Program.SendUniform("lightAmbient.color", 0.1, 0.1, 0.1);
+	Program.SendUniform("lightAmbient.color", 0.0, 0.0, 0.0);
 
 	//DIRECTIONAL LIGHT
 	Program.SendUniform("lightDir.direction", 1.0, 0.5, 1.0);
-	Program.SendUniform("lightDir.diffuse", 0.3, 0.3, 0.3);
+	Program.SendUniform("lightDir.diffuse", 0.0, 0.0, 0.0);
 
 	//POINT LIGHT 1
 	Program.SendUniform("lightPoint.position", 6.7f, 3.8f, -6.0f);
-	Program.SendUniform("lightPoint.diffuse", 0.5, 0.5, 0.5);
-	Program.SendUniform("lightPoint.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint.diffuse", 0.0, 0.0, 0.0);
+	Program.SendUniform("lightPoint.specular", 0.0, 0.0, 0.0);
 	Program.SendUniform("shininess", 13.0f);
 
 	////POINT LIGHT 2
 	Program.SendUniform("lightPoint2.position", 26.7f, 3.8f, 6.0f);
-	Program.SendUniform("lightPoint2.diffuse", 0.5, 0.5, 0.5);
-	Program.SendUniform("lightPoint2.specular", 0.5, 0.5, 0.5);
+	Program.SendUniform("lightPoint2.diffuse", 0.0, 0.0, 0.0);
+	Program.SendUniform("lightPoint2.specular", 0.0, 0.0, 0.0);
 	Program.SendUniform("shininess", 13.0f);
 
 	////SPOT LIGHT 1  (SWINGING/ANIMATED LIGHT)
