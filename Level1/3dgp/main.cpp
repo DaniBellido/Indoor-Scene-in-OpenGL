@@ -31,6 +31,7 @@ C3dglModel ceillamp;
 
 C3dglProgram Program;
 
+//Textures ids
 C3dglBitmap bm;
 C3dglBitmap bm2; 
 GLuint idTexWood;
@@ -90,7 +91,7 @@ bool init()
 		vec3(0.0, 18.0, 0.0),
 		vec3(0.0, 1.0, 0.0));
 
-	//TEXTURES
+	//Initialising textures
 	bm.Load("textures/oak.bmp", GL_RGBA);
 	if (!bm.GetBits()) return false;
 	bm2.Load("textures/cloth.bmp", GL_RGBA);
@@ -99,6 +100,9 @@ bool init()
 	// Send the texture info to the shaders
 	Program.SendUniform("texture0", 0);
 
+	//Activating textures units
+
+	//table textures
 	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &idTexWood);
 	glBindTexture(GL_TEXTURE_2D, idTexWood);
@@ -106,6 +110,7 @@ bool init()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bm.GetWidth(), bm.GetHeight(), 0, GL_RGBA,
 		GL_UNSIGNED_BYTE, bm.GetBits());
 
+	//chair textures
 	glGenTextures(1, &idCloth);
 	glBindTexture(GL_TEXTURE_2D, idCloth);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -119,8 +124,10 @@ bool init()
 	BYTE bytes[] = { 255, 255, 255 };
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_BGR, GL_UNSIGNED_BYTE, &bytes);
 
+
 	//////////////////////   LIGHTS   //////////////////////////
 
+	//initialising lights state
 	lightOn0 = false;
 	lightOn1 = false;
 	lightOn2 = false;
@@ -162,9 +169,11 @@ bool init()
 	// setup the screen background colour
 	glClearColor(0.0f, 0.0f, 0.2f, 1.0f);   // dark blue background
 
+	//Intructions on console
 	cout << endl;
 	cout << "Use:" << endl;
 	cout << "  WASD or arrow key to navigate" << endl;
+	cout << "  Keys: 1,2,3,4,5 to switch lights on/off" << endl;
 	cout << "  QE or PgUp/Dn to move the camera up and down" << endl;
 	cout << "  Shift+AD or arrow key to auto-orbit" << endl;
 	cout << "  Drag the mouse to look around" << endl;
@@ -664,4 +673,3 @@ int main(int argc, char **argv)
 
 	return 1;
 }
-

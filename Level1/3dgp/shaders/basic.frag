@@ -1,8 +1,12 @@
 // FRAGMENT SHADER
 
 #version 330
-
+//inputs and outputs
+in vec2 texCoord0;
+in vec4 position;
+in vec3 normal;
 in vec4 color;
+
 out vec4 outColor;
 
 // Materials
@@ -13,12 +17,6 @@ uniform float shininess;
 
 //Textures 
 uniform sampler2D texture0;
-in vec2 texCoord0;
-
-uniform mat4 matrixView;
-
-in vec4 position;
-in vec3 normal;
 
 //PointLight
 struct POINT
@@ -26,7 +24,7 @@ struct POINT
 	vec3 position;
 	vec3 diffuse;
 	vec3 specular;
-	mat4 matrix; //
+	mat4 matrix; 
 };
 uniform POINT lightPoint, lightPoint2, lightPoint3;
 
@@ -35,7 +33,7 @@ vec4 PointLight(POINT light)
 	// Calculate Point Light
 	vec4 outColor = vec4(0, 0, 0, 0);
 	// calculation code to be inserted in place of this comment
-	vec3 L = normalize(light.matrix * vec4(light.position, 1) - position).xyz;    //matrixView changed by light.matrix
+	vec3 L = normalize(light.matrix * vec4(light.position, 1) - position).xyz;  //uniform mat4 matrixView; changed by light.matrix
 	float NdotL = dot(normal, L);
 	if (NdotL > 0)
 		outColor += vec4(materialDiffuse * light.diffuse, 1) * NdotL;
@@ -54,15 +52,13 @@ vec4 PointLight(POINT light)
 //SPOT LIGHT
 struct SPOT
 {
-	vec3 direction;
 	float cutoff;
 	float attenuation;
-
-
 	mat4 matrix;
 	vec3 position;
 	vec3 diffuse;
 	vec3 specular;
+	vec3 direction;
 };
 uniform SPOT spotLight1;
 
@@ -102,9 +98,6 @@ vec4 SpotLight(SPOT light)
 	return s * outColor;
 }
 
-
-
-
 void main(void) 
 {
 
@@ -112,6 +105,5 @@ void main(void)
   outColor += PointLight(lightPoint);
   outColor += PointLight(lightPoint2);
   outColor += SpotLight(spotLight1);
-
   outColor *= texture(texture0, texCoord0);
 }

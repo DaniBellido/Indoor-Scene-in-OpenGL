@@ -13,6 +13,7 @@ uniform vec3 materialDiffuse;
 uniform vec3 materialSpecular;
 uniform float shininess;
  
+ //inputs and outputs
 in vec3 aVertex;
 in vec3 aNormal;
 in vec2 aTexCoord;
@@ -70,8 +71,6 @@ vec4 EmissiveLight(EMISSIVE light)
 	return vec4(materialEmissive * light.color, 1);
 }
 
-
-
 void main(void) 
 {
 	
@@ -92,4 +91,3 @@ void main(void)
 	texCoord0 = aTexCoord;
 
 }
-
